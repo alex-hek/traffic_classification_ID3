@@ -271,90 +271,59 @@ class DecisionTree(object):
     它需要两个参数：ke，表示特征索引；attri_list，是包含特征值及其对应类别值的元组列表。
     该方法返回最大信息增益、最佳阈值以及阈值两侧数据点的索引。
     '''
-    def cal_best_theta_value(self, ke, attri_list):
-        data = []
-        class_values = []
+    def cal_best_theta_value(self, ke, attri_list):  
+        data = []  
+        class_values = []  
 
-        # 分离特征值和类别值
-        for i in attri_list:
-            data.append(i[0])
-            class_values.append(i[1])
+        # Extract the feature values and class values
+        for i in attri_list:  
+            data.append(i[0])  
+            class_values.append(i[1])  
 
-        entropy_of_par_attr = entropy(class_values)
-        max_info_gain = 0
-        theta = 0
-        best_index_left_list = []
-        best_index_right_list = []
-        class_labels_list_after_split = []
+        entropy_of_par_attr = entropy(class_values)  
+        max_info_gain = 0  
+        theta = 0  
+        best_index_left_list = []  
+        best_index_right_list = []  
+        class_labels_list_after_split = []  
 
-        # 对数据进行排序以找到最佳阈值
-        data.sort()
+        # Sort the data to find the best threshold
+        data.sort()  
 
-        # 遍历特征值
-        for i in range(len(data) - 1):
-            cur_theta = float(data[i] + data[i + 1]) / 2
+        # Iterate through the feature values
+        for i in range(len(data) - 1):  
+            cur_theta = float(data[i] + data[i + 1]) / 2  
 
-            index_less_than_theta_list = []
-            values_less_than_theta_list = []
-            index_greater_than_theta_list = []
-            values_greater_than_theta_list = []
-            
-            '''
-            补全此部分代码，实现以下逻辑功能：
-                1. 根据当前阈值划分数据
-                2. 计算每个划分的熵
-                3. 计算当前阈值的信息增益, 如果需要，更新最佳阈值
-            
-        # 根据当前阈值划分数据
-            for j, value in enumerate(data):
-                if value <= cur_theta:
-                    index_less_than_theta_list.append(j)
-                    values_less_than_theta_list.append(value)
-                else:
-                    index_greater_than_theta_list.append(j)
-                    values_greater_than_theta_list.append(value)
+            index_less_than_theta_list = []  
+            values_less_than_theta_list = []  
+            index_greater_than_theta_list = []  
+            values_greater_than_theta_list = []  
 
-        # 计算划分后的两个数据集的熵
-        entropy_less_than_theta = entropy([class_values[i] for i in index_less_than_theta_list])
-        entropy_greater_than_theta = entropy([class_values[i] for i in index_greater_than_theta_list])
+            # Divide the data based on the current threshold
+            for j in range(len(data)):  
+                if data[j] < cur_theta:  
+                    index_less_than_theta_list.append(j)  
+                    values_less_than_theta_list.append(class_values[j])  
+                else:  
+                    index_greater_than_theta_list.append(j)  
+                    values_greater_than_theta_list.append(class_values[j])  
 
-        # 计算当前阈值的信息增益
-        info_gain = entropy_of_par_attr - (len(values_less_than_theta_list) / len(data) * entropy_less_than_theta +
-                                           len(values_greater_than_theta_list) / len(data) * entropy_greater_than_theta)
+            # Calculate the entropy of each division
+            entropy_less_than_theta = entropy(values_less_than_theta_list)  
+            entropy_greater_than_theta = entropy(values_greater_than_theta_list)  
 
-        # 如果当前信息增益大于当前最佳信息增益，更新最佳阈值和相关信息
-        if info_gain > max_info_gain:
-            max_info_gain = info_gain
-            theta = cur_theta
-            best_index_left_list = index_less_than_theta_list
-            best_index_right_list = index_greater_than_theta_list
-            class_labels_list_after_split = [class_values[i] for i in best_index_left_list] + [class_values[i] for i in best_index_right_list]
-'''
-        # 根据当前阈值划分数据
-        for j in range(len(data)):
-            if data[j] < cur_theta:
-                index_less_than_theta_list.append(j)
-                values_less_than_theta_list.append(class_values[j])
-            else:
-                index_greater_than_theta_list.append(j)
-                values_greater_than_theta_list.append(class_values[j])
+            # Calculate the current information gain
+            cur_info_gain = entropy_of_par_attr - (len(values_less_than_theta_list) * entropy_less_than_theta + len(values_greater_than_theta_list) * entropy_greater_than_theta) / len(class_values)  
 
-        # 计算每个划分的熵
-        entropy_less_than_theta = entropy(values_less_than_theta_list)
-        entropy_greater_than_theta = entropy(values_greater_than_theta_list)
+            # If the current information gain is greater than the current maximum information gain, update the maximum information gain and best threshold
+            if cur_info_gain > max_info_gain:  
+                max_info_gain = cur_info_gain  
+                theta = cur_theta  
+                best_index_left_list = index_less_than_theta_list  
+                best_index_right_list = index_greater_than_theta_list  
+                class_labels_list_after_split = [values_less_than_theta_list, values_greater_than_theta_list]  
 
-        # 计算当前阈值的信息增益
-        cur_info_gain = entropy_of_par_attr - (len(values_less_than_theta_list) * entropy_less_than_theta + len(values_greater_than_theta_list) * entropy_greater_than_theta) / len(class_values)
-
-        # 如果当前信息增益大于当前最大信息增益，更新最大信息增益和最佳阈值
-        if cur_info_gain > max_info_gain:
-            max_info_gain = cur_info_gain
-            theta = cur_theta
-            best_index_left_list = index_less_than_theta_list
-            best_index_right_list = index_greater_than_theta_list
-            class_labels_list_after_split = [values_less_than_theta_list, values_greater_than_theta_list]
-
-        return max_info_gain, theta, best_index_left_list, best_index_right_list, class_labels_list_after_split
+        return max_info_gain, theta, best_index_left_list, best_index_right_list, class_labels_list_after_split  
 
     # 从所有特征中选择最佳特征的方法
     '''
